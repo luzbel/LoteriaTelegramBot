@@ -1,0 +1,369 @@
+swagger: '2.0'
+info:
+  x-ibm-name: telegram-bots
+  title: Telegram Bots
+  version: 1.0.5
+  description: Pruebas invocando a un recurso FAKE implementado en node-red para trazar. La versión 1.0.2 incluye validación del JSON que envía Telegram para mensajes de texto. Debería rechazar otros tipos de mensajes.
+schemes:
+  - https
+host: $(catalog.host)
+basePath: /telegram
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  clientId:
+    type: apiKey
+    in: query
+    name: client_id
+security:
+  - clientId: []
+x-ibm-configuration:
+  testable: false
+  enforced: true
+  cors:
+    enabled: true
+  assembly:
+    execute:
+      - if:
+          title: if
+          condition: 'false'
+          execute:
+            - validate:
+                title: validate
+                definition: '#/definitions/TelegramUpdate'
+            - invoke:
+                title: invoke
+                timeout: 60
+                verb: keep
+                cache-response: protocol
+                cache-ttl: 900
+                stop-on-error:
+                  - null
+                target-url: 'http://testiotpstarter.eu-gb.mybluemix.net/dummy'
+      - operation-switch:
+          title: operation-switch
+          case:
+            - operations:
+                - verb: post
+                  path: /webhook/LoteriaNino
+              execute:
+                - gatewayscript:
+                    title: gatewayscript
+                    source: "var json = apim.getvariable('request.body');\n\njson.targetURL = apim.getvariable('api.properties.APILoteriaNinoTargetURL');\n\njson.botToken = apim.getvariable('api.properties.botTokenNino');\n\n//session.output.write(json); \n\napim.setvariable('message.body', json);"
+            - operations:
+                - verb: post
+                  path: /webhook/LoteriaNavidad
+              execute:
+                - gatewayscript:
+                    title: gatewayscript
+                    source: "var json = apim.getvariable('request.body');\n\njson.targetURL = apim.getvariable('api.properties.APILoteriaNavidadTargetURL');\n\njson.botToken = apim.getvariable('api.properties.botTokenNavidad');\n\n//session.output.write(json); \n\napim.setvariable('message.body', json);"
+          otherwise: []
+      - proxy:
+          title: proxy
+          timeout: 60
+          verb: keep
+          cache-response: protocol
+          cache-ttl: 900
+          target-url: 'https://$(targetHost)/$(targetPath)'
+          username: $(whiskUsername)
+          password: $(whiskPassword)
+          description: Invocar WhiskAction
+      - switch:
+          title: switch
+          case:
+            - condition: '((apim.getvariable("message.status.code")==200) || (apim.getvariable("message.status.code")==202))'
+              execute:
+                - set-variable:
+                    title: set-variable
+                    actions:
+                      - set: message.body
+                        value: '{ "result" : "OK" }'
+            - otherwise:
+                - set-variable:
+                    title: set-variable
+                    actions:
+                      - set: message.body
+                        value: '{ "result" : "Algo va mal"  }'
+          description: Successful activation or Accepted activation request
+    catch: []
+  gateway: datapower-gateway
+  phase: realized
+  properties:
+    botTokenNino:
+      value: ''
+      description: ''
+      encoded: true
+    APILoteriaNinoTargetURL:
+      value: ''
+      description: ''
+      encoded: false
+    botTokenNavidad:
+      value: ''
+      description: ''
+      encoded: true
+    APILoteriaNavidadTargetURL:
+      value: ''
+      description: ''
+      encoded: false
+    whiskPassword:
+      value: ''
+      description: ''
+      encoded: true
+    whiskUsername:
+      value: ''
+      description: ''
+      encoded: false
+    targetPath:
+      value: ''
+      description: ''
+      encoded: false
+    targetHost:
+      value: ''
+      description: ''
+      encoded: false
+  catalogs: {}
+paths:
+  /webhook/LoteriaNino:
+    post:
+      responses:
+        '200':
+          description: 200 OK
+      parameters:
+        - name: TelegramUpdate
+          required: true
+          in: body
+          schema:
+            $ref: '#/definitions/TelegramUpdate'
+  /webhook/LoteriaNavidad:
+    post:
+      responses:
+        '200':
+          description: Successful activation
+          schema:
+            $ref: '#/definitions/Activation'
+        '202':
+          description: Activation request accepted
+          schema:
+            $ref: '#/definitions/ItemId'
+        '500':
+          description: Server error
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+        '502':
+          description: Activation produced an application error
+          schema:
+            $ref: '#/definitions/Activation'
+      parameters:
+        - name: TelegramUpdate
+          required: true
+          in: body
+          schema:
+            $ref: '#/definitions/TelegramUpdate'
+definitions:
+  TelegramInlineQuery:
+    properties:
+      offset:
+        type: string
+        description: 'Offset of the results to be returned, can be controlled by the bot'
+      query:
+        type: string
+        description: Text of the query (up to 512 characters)
+      location:
+        type: object
+        description: 'Optional. Sender location, only for bots that request user location'
+      from:
+        description: Sender
+        $ref: '#/definitions/TelegramUser'
+      id:
+        type: string
+        description: Unique identifier for this query
+    additionalProperties: false
+    description: 'This object represents an incoming inline query. When the user sends an empty query, your bot could return some default or trending results.'
+  TelegramMessageEntity:
+    properties:
+      user:
+        description: 'Optional. For “text_mention” only, the mentioned user'
+        $ref: '#/definitions/TelegramUser'
+      url:
+        type: string
+        description: 'Optional. For “text_link” only, url that will be opened after user taps on the text'
+      length:
+        type: integer
+        description: Length of the entity in UTF-16 code units
+        format: int32
+      offset:
+        type: integer
+        description: Offset in UTF-16 code units to the start of the entity
+        format: int32
+      type:
+        type: string
+        description: 'Type of the entity. Can be mention (@username), hashtag, bot_command, url, email, bold (bold text), italic (italic text), code (monowidth string), pre (monowidth block), text_link (for clickable text URLs), text_mention (for users without usernames)'
+    additionalProperties: false
+  TelegramMessageEntityArray:
+    type: array
+    items:
+      $ref: '#/definitions/TelegramMessageEntity'
+  TelegramChat:
+    properties:
+      all_members_are_administrators:
+        type: boolean
+        description: Optional. True if a group has ‘All Members Are Admins’ enabled.
+        example: false
+      last_name:
+        type: string
+        description: Optional. Last name of the other party in a private chat
+      first_name:
+        type: string
+        description: Optional. First name of the other party in a private chat
+      username:
+        type: string
+        description: 'Optional. Username, for private chats, supergroups and channels if available'
+      title:
+        type: string
+        description: 'Optional. Title, for supergroups, channels and group chats'
+      type:
+        type: string
+        description: 'Type of chat, can be either “private”, “group”, “supergroup” or “channel”'
+      id:
+        type: integer
+        description: 'Unique identifier for this chat. This number may be greater than 32 bits and some programming languages may have difficulty/silent defects in interpreting it. But it smaller than 52 bits, so a signed 64 bit integer or double-precision float type are safe for storing this identifier.'
+        format: int32
+    additionalProperties: false
+    description: This object represents a chat.
+  TelegramUser:
+    properties:
+      username:
+        type: string
+        description: Optional. User‘s or bot’s username
+      last_name:
+        type: string
+        description: Optional. User‘s or bot’s last name
+      first_name:
+        type: string
+        description: User‘s or bot’s first name
+      id:
+        type: integer
+        description: Unique identifier for this user or bot
+        format: int32
+    additionalProperties: false
+    description: This object represents a Telegram user or bot.
+  TelegramMessage:
+    properties:
+      edit_date:
+        type: integer
+        format: int32
+        description: Optional. Date the message was last edited in Unix time
+      entities:
+        description: 'Optional. For text messages, special entities like usernames, URLs, bot commands, etc. that appear in the text'
+        items:
+          type: string
+        $ref: '#/definitions/TelegramMessageEntityArray'
+      text:
+        type: string
+        description: 'Optional. For text messages, the actual UTF-8 text of the message, 0-4096 characters.'
+      date:
+        type: integer
+        description: Date the message was sent in Unix time
+        format: int32
+      chat:
+        description: Conversation the message belongs to
+        $ref: '#/definitions/TelegramChat'
+      from:
+        description: 'Optional. Sender, can be empty for messages sent to channels'
+        $ref: '#/definitions/TelegramUser'
+      message_id:
+        type: integer
+        description: Unique message identifier inside this chat
+        format: int32
+    additionalProperties: false
+    description: This object represents a message.
+  TelegramUpdate:
+    properties:
+      inline_query:
+        description: Optional. New incoming inline query
+        $ref: '#/definitions/TelegramInlineQuery'
+      edited_message:
+        type: string
+        description: Optional. New version of a message that is known to the bot and was edited
+      message:
+        $ref: '#/definitions/TelegramMessage'
+        description: 'Optional. New incoming message of any kind — text, photo, sticker, etc.'
+      update_id:
+        type: integer
+        format: int32
+        description: 'The update‘s unique identifier. Update identifiers start from a certain positive number and increase sequentially. This ID becomes especially handy if you’re using Webhooks, since it allows you to ignore repeated updates or to restore the correct update sequence, should they get out of order.'
+    additionalProperties: false
+    description: |-
+      This object represents an incoming update.
+      At most one of the optional parameters can be present in any given update.
+  ItemId:
+    required:
+      - id
+    properties:
+      id:
+        type: string
+  ErrorMessage:
+    required:
+      - error
+    properties:
+      error:
+        type: string
+  Activation:
+    required:
+      - namespace
+      - name
+      - version
+      - publish
+      - subject
+      - activationId
+      - start
+      - end
+      - result
+      - logs
+    properties:
+      namespace:
+        type: string
+        description: Namespace of the associated item
+      name:
+        type: string
+        description: Name of the item
+      version:
+        type: string
+        description: Semantic version of the item
+      publish:
+        type: boolean
+        description: Whether to publish the item or not
+      subject:
+        type: string
+        description: The subject that activated the item
+      activationId:
+        type: string
+        description: Id of the activation
+      start:
+        type: string
+        description: Time when the activation began
+      end:
+        type: string
+        description: Time when the activation completed
+      result:
+        $ref: '#/definitions/ActivationResult'
+      logs:
+        type: string
+        description: Logs generated by the activation
+  ActivationResult:
+    properties:
+      status:
+        type: string
+        description: Exit status of the activation
+      value:
+        description: The return value from the activation
+tags: []
+parameters:
+  api_parameter:
+    name: api_parameter
+    required: false
+    in: body
+    schema:
+      type: object

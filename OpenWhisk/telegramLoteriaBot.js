@@ -31,11 +31,10 @@ function main(update) {
 
 		if (!update.inline_query) {
 			// Falta comprobar si se trata de un update.message o update.edited_message
-			var output='No se ha recibido inline_query en el update envíado por Telegram';
+			var output='NO se ha recibido inline_query en el update envíado por Telegram';
 			console.log('telegramMessageAction:',output);
 			if (    (update.message && update.message.chat && update.message.chat.id) ||
 				(update.edited_message && update.edited_message.chat && update.edited_message.chat.id) ) {
-
 				var chat_id;
 				if (update.message) {
 					chat_id=update.message.chat.id;
@@ -51,7 +50,13 @@ function main(update) {
 					},
 					json: { 
 						"chat_id": chat_id,
-						"text": 
+						"text":  // "*prueba*" ,
+					//	 'prueba a teclear, sin enviar el mensaje, LoteriaNavidad_BOT 66513 ',
+"Este bot NO oficial comprueba premios en los sorteos de Navidad y el nino en todos tus chats y grupos. "+chat_id,
+//"Este bot NO oficial comprueba premios en el sorteo del nino en todos tus chats y grupos, por lo que no necesitas anadirlo. ",
+//"prueba a teclear, sin enviar el mensaje, LoteriaNavidad_BOT 66513",
+// "Este bot NO oficial comprueba premios en el sorteo del nino en todos tus chats y grupos, por lo que no necesitas anadirlo. ", // Simplemente escribe @LoteriaNino_BOT en cualquier chat y escribe luego el número a consultar (sin enviar). ", // Esto abrirá un panel con información sobre el estado del sorteo y el premio correspondiente, que puedes pulsar para enviar el resultado al chat. La unica lista oficial es la que publica la ONLAE y deberias comprobar todos tus numeros contra ella.",
+		/*				
 "Este bot *NO oficial* permite consultar los premios de números en el sorteo del niño y Navidad en todos tus chats y grupos, sin necesidad de añadirlo a ningún chat o grupo."+
 "Simplemente escribe @LoteriaNino_BOT o @LoteriaNavidad_BOT en cualquier chat y escribe luego las 5 cifras del número a consultar (sin dar a enviar)."+
 "\n"+
@@ -63,11 +68,11 @@ function main(update) {
 "\n"+
 "*La unica lista oficial es la que publica la ONLAE y deberias comprobar todos tus numeros contra ella.*"+
 "\n"+
-"La información de los premios es obtenida de las API pública proporcionado por el periódico [\"El País\"](http://elpais.com/) para el sorteo de [Navidad](http://servicios.elpais.com/sorteos/loteria-navidad/api/) y el sorteo del [Niño](http://servicios.elpais.com/sorteos/loteria-del-nino/api/)",
+"La información de los premios es obtenida de las API pública proporcionado por el periódico [\"El País\"](http://elpais.com/) para el sorteo de [Navidad](http://servicios.elpais.com/sorteos/loteria-navidad/api/) y el sorteo del [Niño](http://servicios.elpais.com/sorteos/loteria-del-nino/api/)", 
+*/
 						"parse_mode": "Markdown"
 					}
 				};
-
 				request(options, function(error, response, body) {
 					if (error) {
 						console.log('telegramMessageAction:','Error al enviar ayuda a Telegram');
@@ -82,9 +87,10 @@ function main(update) {
 			} else {
 			  output='Tampoco se ha recibido message o edited_message con chat.id';
 			  console.log('telegramMessageAction:',output);
+			  resolve({msg: output}); 
 			}
-			resolve({msg: output}); 
-		}
+			//resolve({msg: output}); 
+		} else {
 
 		if (!update.inline_query.query) {
 			var output='No se ha recibido query en la inline_query envíada por Telegram';
@@ -201,6 +207,7 @@ function main(update) {
 					resolve({msg: output}); 
 				}
 			});                
-		});			
+		});		
+}
 	}); // fin Promise
 }

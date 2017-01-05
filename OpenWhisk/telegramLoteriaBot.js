@@ -42,6 +42,10 @@ function main(update) {
 					chat_id=update.edited_message.chat.id;
 				}
 				// ENVIAR RESPUESTA A TELEGRAM
+				// el texto lo guardamos en base64 debido a https://github.com/openwhisk/openwhisk/issues/252
+				var textBase64='RXN0ZSBib3QgKk5PIG9maWNpYWwqIHBlcm1pdGUgY29uc3VsdGFyIGxvcyBwcmVtaW9zIGRlIG7Dum1lcm9zIGVuIGVsIHNvcnRlbyBkZWwgbmnDsW8geSBOYXZpZGFkIHNpbiBuZWNlc2lkYWQgZGUgYcOxYWRpcmxvIGEgbmluZ8O6biBjaGF0IG8gZ3J1cG8uIFNpbXBsZW1lbnRlIGVzY3JpYmUgXFxATG90ZXJpYU5pbm9cXF9CT1QgbyBcXEBMb3RlcmlhTmF2aWRhZFxcX0JPVCBlbiBjdWFscXVpZXIgY2hhdCB5IGVzY3JpYmUgbHVlZ28gbGFzIDUgY2lmcmFzIGRlbCBuw7ptZXJvIGEgY29uc3VsdGFyIChzaW4gbGxlZ2FyIGEgZW52aWFyIGVsIG1lbnNhamUpLg0KDQoNCkVsIGJvdCBubyBlbXBlemFyw6EgYSBidXNjYXIgeSBkZXZvbHZlciByZXN1bHRhZG9zIGhhc3RhIHF1ZSBubyBoYXlhcyBlc2NyaXRvIGxhcyBjaW5jbyBjaWZyYXMuDQoNCg0KRXNwZXJhIHVuIHBvY28gYSBxdWUgc2UgcmVhbGljZSBsYSBjb25zdWx0YSBkZWwgbsO6bWVybyB5IHNlIGFicmlyw6EgdW4gcGFuZWwgY29uIGluZm9ybWFjacOzbiBzb2JyZSBlbCBlc3RhZG8gZGVsIHNvcnRlbyB5IGVsIHByZW1pbyBjb3JyZXNwb25kaWVudGUuIFB1ZWRlcyBzZWxlY2Npb25hciBwYXJhIGVudmlhciBlbCByZXN1bHRhZG8gYWwgY2hhdC4NCg0KDQoqUG9yIGVqZW1wbG8sIHBydWViYSBhIHRlY2xlYXIgYXF1w60gbWlzbW8gXFxATG90ZXJpYU5hdmlkYWRcXF9CT1QgNjY1MTMqDQoNCg0Kw5pzYWxvIGJham8gdHUgcHJvcGlvIHJpZXNnbywgc2UgdHJhdGEgZGUgdW4gcHJvZHVjdG8gZW4gcHJ1ZWJhcyBzaW4gbmluZ3VuYSBnYXJhbnTDrWEuIE5vIG5vcyBoYWNlbW9zIHJlc3BvbnNhYmxlcyBkZSBuaW5ndW5hIHDDqXJkaWRhIGRlcml2YWRhIGRlIHN1IHVzby4NCg0KDQoqTGEgw7puaWNhIGxpc3RhIG9maWNpYWwgZXMgbGEgcXVlIHB1YmxpY2EgbGEgKltPTkxBRV0oaHR0cDovL3d3dy5sb3Rlcmlhc3lhcHVlc3Rhcy5lcy9lcykqIHkgZGViZXLDrWFzIGNvbXByb2JhciB0b2RvcyB0dXMgbsO6bWVyb3MgY29udHJhIGVsbGEuKg0KDQoNCkxhIGluZm9ybWFjacOzbiBkZSBsb3MgcHJlbWlvcyBlcyBvYnRlbmlkYSBkZSBsYXMgQVBJcyBww7pibGljYSBwcm9wb3JjaW9uYWRvIHBvciBlbCBwZXJpw7NkaWNvIFtcIkVsIFBhw61zXCJdKGh0dHA6Ly9lbHBhaXMuY29tLykgcGFyYSBlbCBzb3J0ZW8gZGUgW05hdmlkYWRdKGh0dHA6Ly9zZXJ2aWNpb3MuZWxwYWlzLmNvbS9zb3J0ZW9zL2xvdGVyaWEtbmF2aWRhZC9hcGkvKSB5IGVsIHNvcnRlbyBkZWwgW05pw7FvXShodHRwOi8vc2VydmljaW9zLmVscGFpcy5jb20vc29ydGVvcy9sb3RlcmlhLWRlbC1uaW5vL2FwaS8pLCBwZXJvIGVsIEJPVCBubyBlc3TDoSB2aW5jdWxhZG8gYSBcIkVsIFBhw61zXCI=';
+				var utf8text = new Buffer(textBase64, 'base64').toString('utf-8');
+				
 				var options = {
 					method: 'POST',
 					url: 'https://api.telegram.org/bot'+update.botToken+'/sendMessage',
@@ -50,25 +54,23 @@ function main(update) {
 					},
 					json: { 
 						"chat_id": chat_id,
-						"text":  // "*prueba*" ,
-					//	 'prueba a teclear, sin enviar el mensaje, LoteriaNavidad_BOT 66513 ',
-"Este bot NO oficial comprueba premios en los sorteos de Navidad y el nino en todos tus chats y grupos. "+chat_id,
-//"Este bot NO oficial comprueba premios en el sorteo del nino en todos tus chats y grupos, por lo que no necesitas anadirlo. ",
-//"prueba a teclear, sin enviar el mensaje, LoteriaNavidad_BOT 66513",
-// "Este bot NO oficial comprueba premios en el sorteo del nino en todos tus chats y grupos, por lo que no necesitas anadirlo. ", // Simplemente escribe @LoteriaNino_BOT en cualquier chat y escribe luego el número a consultar (sin enviar). ", // Esto abrirá un panel con información sobre el estado del sorteo y el premio correspondiente, que puedes pulsar para enviar el resultado al chat. La unica lista oficial es la que publica la ONLAE y deberias comprobar todos tus numeros contra ella.",
-		/*				
-"Este bot *NO oficial* permite consultar los premios de números en el sorteo del niño y Navidad en todos tus chats y grupos, sin necesidad de añadirlo a ningún chat o grupo."+
-"Simplemente escribe @LoteriaNino_BOT o @LoteriaNavidad_BOT en cualquier chat y escribe luego las 5 cifras del número a consultar (sin dar a enviar)."+
-"\n"+
-"El bot no empezará a buscar hasta que no hayas escrito las cinco cifras."+
-"\n"+
-"Esto abrirá un panel con información sobre el estado del sorteo y el premio correspondiente, que puedes pulsar para enviar el resultado al chat."+
-"\n"+
-"Por ejemplo, prueba a teclear @LoteriaNavidad_BOT 66513 aquí mismo"+
-"\n"+
-"*La unica lista oficial es la que publica la ONLAE y deberias comprobar todos tus numeros contra ella.*"+
-"\n"+
-"La información de los premios es obtenida de las API pública proporcionado por el periódico [\"El País\"](http://elpais.com/) para el sorteo de [Navidad](http://servicios.elpais.com/sorteos/loteria-navidad/api/) y el sorteo del [Niño](http://servicios.elpais.com/sorteos/loteria-del-nino/api/)", 
+						"text":  utf8text,
+						// hay que escapar caracteres como _ 
+						/*
+"Este bot *NO oficial* permite consultar los premios de números en el sorteo del niño y Navidad sin necesidad de añadirlo a ningún chat o grupo. "+
+"Simplemente escribe \\@LoteriaNino\\_BOT o \\@LoteriaNavidad\\_BOT en cualquier chat y escribe luego las 5 cifras del número a consultar (sin llegar a enviar el mensaje)."+
+"\n\n"+
+"El bot no empezará a buscar y devolver resultados hasta que no hayas escrito las cinco cifras."+
+"\n\n"+
+"Espera un poco a que se realice la consulta del número y se abrirá un panel con información sobre el estado del sorteo y el premio correspondiente. Puedes seleccionar para enviar el resultado al chat."+
+"\n\n"+
+"*Por ejemplo, prueba a teclear aquí mismo \\@LoteriaNavidad\\_BOT 66513*"+
+"\n\n"+
+"Úsalo bajo tu propio riesgo, se trata de un producto en pruebas sin ninguna garantía. No nos hacemos responsables de ninguna pérdida derivada de su uso."+
+"\n\n"+
+"*La unica lista oficial es la que publica la *[ONLAE](http://www.loteriasyapuestas.es/es)* y deberias comprobar todos tus numeros contra ella.*"+
+"\n\n"+
+"La información de los premios es obtenida de las APIs pública proporcionado por el periódico [\"El País\"](http://elpais.com/) para el sorteo de [Navidad](http://servicios.elpais.com/sorteos/loteria-navidad/api/) y el sorteo del [Niño](http://servicios.elpais.com/sorteos/loteria-del-nino/api/), pero el BOT no está vinculado a \"El País\"",
 */
 						"parse_mode": "Markdown"
 					}

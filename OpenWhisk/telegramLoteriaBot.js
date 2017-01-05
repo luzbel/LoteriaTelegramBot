@@ -131,10 +131,12 @@ function main(update) {
 			var resp = JSON.parse(respJSON);
 			var description;
 			var texto;
+		    var descBase64;
 
 			if (resp.error!=0) {
 				console.log('telegramMessageAction:','el API de loteria ha devuelto error '+resp.error);
-				description = 'Ups, no hemos conseguido consultar el número. Intentalo más tarde';
+				// description = 'Ups, no hemos conseguido consultar el número. Intentalo más tarde';
+				descBase64='VXBzLCBubyBoZW1vcyBjb25zZWd1aWRvIGNvbnN1bHRhciBlbCBuw7ptZXJvLiBJbnRlbnRhbG8gbcOhcyB0YXJkZQ==';
 				texto = '';
 			} else {
 				console.log('telegramMessageAction:','ok, el API de loteria ha devuelto error '+resp.error);
@@ -142,23 +144,32 @@ function main(update) {
 				// TODO Falta poner los acentos cuando funcionen en OpenWhisk
 				switch(resp.status)
 				{
-					case 0: description = 'El sorteo no ha comenzado aun. Todos los numeros aparecen como no premiados. ';
+					case 0: //description = 'El sorteo no ha comenzado aun. Todos los numeros aparecen como no premiados. ';
+					    descBase64 = 'RWwgc29ydGVvIG5vIGhhIGNvbWVuemFkbyBhw7puLiBUb2RvcyBsb3MgbsO6bWVyb3MgYXBhcmVjZW4gY29tbyBubyBwcmVtaWFkb3MuIA==';					    
 						break;
-					case 1: description = 'El sorteo ha empezado. La lista de numeros premiados se va cargando poco a poco. Un numero premiado podria llegar a tardar unos minutos en aparecer. ';
+					case 1: // description = 'El sorteo ha empezado. La lista de numeros premiados se va cargando poco a poco. Un numero premiado podria llegar a tardar unos minutos en aparecer. ';
+					    descBase64 = 'RWwgc29ydGVvIGhhIGVtcGV6YWRvLiBMYSBsaXN0YSBkZSBuw7ptZXJvcyBwcmVtaWFkb3Mgc2UgdmEgY2FyZ2FuZG8gcG9jbyBhIHBvY28uIFVuIG51bWVybyBwcmVtaWFkbyBwb2Ryw61hIGxsZWdhciBhIHRhcmRhciB1bm9zIG1pbnV0b3MgZW4gYXBhcmVjZXIuIA==';
 						break;
-					case 2: description = 'El sorteo ha terminado y la lista de numeros y premios deberia ser la correcta aunque, tomada al oido, no podemos estar seguros de ella. ';
+					case 2: // description = 'El sorteo ha terminado y la lista de numeros y premios deberia ser la correcta aunque, tomada al oido, no podemos estar seguros de ella. ';
+					    descBase64 = 'RWwgc29ydGVvIGhhIHRlcm1pbmFkbyB5IGxhIGxpc3RhIGRlIG7Dum1lcm9zIHkgcHJlbWlvcyBkZWJlcsOtYSBzZXIgbGEgY29ycmVjdGEgYXVucXVlLCB0b21hZGEgYWwgb8OtZG8sIG5vIHBvZGVtb3MgZXN0YXIgc2VndXJvcyBkZSBlbGxhLiA=';
 						break;
-					case 3: description = 'El sorteo ha terminado y existe una lista oficial en PDF. ';
+					case 3: // description = 'El sorteo ha terminado y existe una lista oficial en PDF. ';
+					    descBase64 = 'RWwgc29ydGVvIGhhIHRlcm1pbmFkbyB5IGV4aXN0ZSB1bmEgbGlzdGEgb2ZpY2lhbCBlbiBQREYuIA==';
 						break;
-					case 4: description = 'El sorteo ha terminado y la lista de numeros y premios esta basada en la oficial. De todas formas, recuerda que la unica lista oficial es la que publica la ONLAE y deberias comprobar todos tus numeros contra ella. ';
+					case 4: // description = 'El sorteo ha terminado y la lista de numeros y premios esta basada en la oficial. De todas formas, recuerda que la unica lista oficial es la que publica la ONLAE y deberias comprobar todos tus numeros contra ella. ';
+					    descBase64 = 'RWwgc29ydGVvIGhhIHRlcm1pbmFkbyB5IGxhIGxpc3RhIGRlIG7Dum1lcm9zIHkgcHJlbWlvcyBlc3RhIGJhc2FkYSBlbiBsYSBvZmljaWFsLiBEZSB0b2RhcyBmb3JtYXMsIHJlY3VlcmRhIHF1ZSBsYSDDum5pY2EgbGlzdGEgb2ZpY2lhbCBlcyBsYSBxdWUgcHVibGljYSBsYSBPTkxBRSB5IGRlYmVyw61hcyBjb21wcm9iYXIgdG9kb3MgdHVzIG7Dum1lcm9zIGNvbnRyYSBlbGxhLiA=';
 						break;
 					default:
-						description = 'No tenemos ni idea de como va el sorteo. ';
+						// description = 'No tenemos ni idea de como va el sorteo. ';
+						descBase64 = 'Tm8gdGVuZW1vcyBuaSBpZGVhIGRlIGNvbW8gdmEgZWwgc29ydGVvLiA=';
 				}
 
-				texto = '*El premio al decimo del numero '+ resp.numero+' es de '+resp.premio+' euros.*'
+				
+				// texto = '*El premio al decimo del numero '+ resp.numero+' es de '+resp.premio+' euros.*'
+				texto = new Buffer('KkVsIHByZW1pbyBhbCBkZWNpbW8gZGVsIG51bWVybyA=','base64').toString('utf-8')+resp.numero+' es de '+resp.premio+' euros.*'
 
 			} // else no error al consultar el decimo a elpais
+            description = new Buffer(descBase64, 'base64').toString('utf-8');
 
 			// ENVIAR RESPUESTA A TELEGRAM
 			var options = {
